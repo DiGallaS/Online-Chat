@@ -7,7 +7,6 @@ import java.net.Socket;
 
 public class ServerInOut extends Thread {
     private final Socket socket;
-    private BufferedReader in;
     private String name;
     private final String historyAddress;
     private final ServerHistory history = ServerHistory.getInstance();
@@ -22,6 +21,7 @@ public class ServerInOut extends Thread {
 
     @Override
     public void run() {
+        BufferedReader in;
         try {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             name = in.readLine();
@@ -51,6 +51,7 @@ public class ServerInOut extends Thread {
             try {
                 history.writeHistory("Обрыв соедиения у " + name, historyAddress);
                 send(name + " вышел(а) из чата.");
+                Server.clientList.remove(socket);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -60,7 +61,6 @@ public class ServerInOut extends Thread {
     private void send(String text) throws IOException {
         for (ServerInOut client : Server.clientList) {
             PrintWriter out = new PrintWriter(client.socket.getOutputStream());
-            ;
             if (firstMSG && client.socket == this.socket) {
                 firstMSG = false;
                 out.write("Системное сообщение: Добро пожаловать " + name + " !!!\n");
